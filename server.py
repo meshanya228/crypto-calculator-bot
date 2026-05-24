@@ -6,18 +6,17 @@ import urllib.request
 
 app = Flask(__name__, static_folder="static")
 
-# ─── Keep-alive: пингуем себя каждые 4 минуты ───────────────────────────────
-# Render Free засыпает через 15 мин без внешних запросов.
-# Gunicorn держит этот поток живым пока процесс работает.
+# ─── Keep-alive: пингуем себя каждые 13 минут ───────────────────────────────
+# Render Free засыпает ровно через 15 мин без внешних запросов.
+# 13 минут — минимально достаточный интервал, тратит меньше всего ресурсов.
 def _self_ping():
     # Ждём 30 сек после старта чтобы сервер успел подняться
     time.sleep(30)
     base = os.environ.get("WEBAPP_URL", "").replace("/app", "")
     if not base:
-        # Если WEBAPP_URL не задан — строим URL сами
         base = "https://crypto-calculator-bot.onrender.com"
     health_url = base.rstrip("/") + "/health"
-    print(f"[keep-alive] Starting self-ping every 4 min -> {health_url}")
+    print(f"[keep-alive] Starting self-ping every 13 min -> {health_url}")
     while True:
         try:
             req = urllib.request.Request(health_url, headers={"User-Agent": "keep-alive/1.0"})
@@ -25,7 +24,7 @@ def _self_ping():
                 print(f"[keep-alive] ping OK {r.status}")
         except Exception as e:
             print(f"[keep-alive] ping failed: {e}")
-        time.sleep(240)  # 4 минуты
+        time.sleep(780)  # 13 минут
 
 # Запускаем поток один раз при импорте модуля (gunicorn импортирует server.py)
 _ping_thread = threading.Thread(target=_self_ping, daemon=True, name="keep-alive")
