@@ -1,0 +1,23 @@
+name: crypto-calculator-bot
+services:
+  - name: web
+    type: web
+    git:
+      repository: github.com/meshanya228/crypto-calculator-bot
+      branch: main
+    build:
+      buildpack:
+        run_command: gunicorn server:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
+    ports:
+      - port: 8080
+        protocol: http
+    env:
+      - name: BOT_TOKEN
+        value: "${BOT_TOKEN}"
+      - name: WEBAPP_URL
+        value: "${WEBAPP_URL}"
+    health_checks:
+      - path: /health
+        port: 8080
+        interval: 30
+        timeout: 5
