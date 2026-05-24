@@ -35,6 +35,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
   }
   .tab-btn.active {
     background: #3F51B5;
@@ -50,27 +51,33 @@
   .card {
     background: #1e1e1e;
     border-radius: 14px;
-    padding: 18px;
+    padding: 16px;
     margin-bottom: 14px;
   }
 
-  /* Input rows */
+  /* FIX: grid-layout вместо flex — label никогда не сжимает input */
   .field {
-    display: flex;
+    display: grid;
+    grid-template-columns: 110px 1fr;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
+    gap: 10px;
+    margin-bottom: 12px;
   }
   .field:last-child { margin-bottom: 0; }
 
   .field label {
     color: #aaa;
     font-size: 13px;
-    flex: 0 0 120px;
+    /* FIX: убираем перенос и обрезаем если не влезет */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .field input {
-    flex: 1;
+    /* FIX: min-width:0 обязателен внутри grid, иначе input раздувает колонку */
+    min-width: 0;
+    width: 100%;
     background: #2a2a2a;
     border: 1.5px solid #333;
     border-radius: 8px;
@@ -113,16 +120,18 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
   }
   .result-row .label { color: #aaa; font-size: 13px; }
   .result-row .value {
     font-size: 18px;
     font-weight: 700;
     color: #fff;
+    text-align: right;
   }
-  .result-row .value.green { color: #66BB6A; }
+  .result-row .value.green  { color: #66BB6A; }
   .result-row .value.yellow { color: #FFA726; }
-  .result-row .value.blue { color: #42A5F5; }
+  .result-row .value.blue   { color: #42A5F5; }
 
   .error-msg {
     color: #e53935;
@@ -131,7 +140,6 @@
     width: 100%;
   }
 
-  /* Section titles */
   .section-title {
     font-size: 11px;
     font-weight: 700;
@@ -141,7 +149,6 @@
     margin-bottom: 12px;
   }
 
-  /* Warning badge */
   .warning-badge {
     display: none;
     background: #332900;
@@ -159,15 +166,14 @@
 <body>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('leverage')">📈 Leverage Calc</button>
-  <button class="tab-btn" onclick="switchTab('margin')">💰 Margin Calc</button>
+  <button class="tab-btn active" onclick="switchTab('leverage', this)">📈 Leverage Calc</button>
+  <button class="tab-btn" onclick="switchTab('margin', this)">💰 Margin Calc</button>
 </div>
 
 <!-- LEVERAGE TAB -->
 <div class="tab-panel active" id="tab-leverage">
   <div class="card">
     <div class="section-title">Параметры сделки</div>
-
     <div class="field">
       <label>Entry Price</label>
       <input type="number" id="lev-entry" placeholder="напр. 45000" step="any" inputmode="decimal" oninput="calcLeverage()">
@@ -180,7 +186,7 @@
       <label>Margin ($)</label>
       <input type="number" id="lev-margin" placeholder="напр. 500" step="any" inputmode="decimal" oninput="calcLeverage()">
     </div>
-    <div class="field" style="margin-bottom:0">
+    <div class="field">
       <label>Max Leverage</label>
       <input type="number" id="lev-maxlev" placeholder="50" value="50" step="1" inputmode="decimal" oninput="calcLeverage()">
     </div>
@@ -196,7 +202,6 @@
 <div class="tab-panel" id="tab-margin">
   <div class="card">
     <div class="section-title">Параметры сделки</div>
-
     <div class="field">
       <label>Entry Price</label>
       <input type="number" id="mar-entry" placeholder="напр. 45000" step="any" inputmode="decimal" oninput="calcMargin()">
@@ -209,7 +214,7 @@
       <label>Leverage</label>
       <input type="number" id="mar-lev" placeholder="напр. 10" step="any" inputmode="decimal" oninput="calcMargin()">
     </div>
-    <div class="field" style="margin-bottom:0">
+    <div class="field">
       <label>Desired Loss ($)</label>
       <input type="number" id="mar-loss" placeholder="напр. 100" step="any" inputmode="decimal" oninput="calcMargin()">
     </div>
@@ -221,27 +226,19 @@
 </div>
 
 <script>
-// Инициализация Telegram WebApp
 const tg = window.Telegram?.WebApp;
 if (tg) {
   tg.ready();
   tg.expand();
-  // Применяем цвета темы Telegram если доступны
-  if (tg.colorScheme === 'light') {
-    document.body.style.background = '#f0f0f0';
-    document.body.style.color = '#111';
-  }
 }
 
-// --- Tab switching ---
-function switchTab(name) {
+function switchTab(name, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
+  btn.classList.add('active');
 }
 
-// --- Helpers ---
 function getVal(id) {
   const v = parseFloat(document.getElementById(id).value);
   return isNaN(v) ? null : v;
@@ -257,7 +254,6 @@ function setPlaceholder(resultId) {
     `<div class="placeholder">Введи данные выше — результат появится здесь</div>`;
 }
 
-// --- Leverage calculation ---
 function calcLeverage() {
   const entry  = getVal('lev-entry');
   const sl     = getVal('lev-sl');
@@ -266,7 +262,6 @@ function calcLeverage() {
   const warn   = document.getElementById('lev-warning');
   warn.classList.remove('show');
 
-  // Не все поля заполнены — просто сброс
   if (entry === null || sl === null || margin === null || maxLev === null) {
     setPlaceholder('lev-result'); return;
   }
@@ -285,26 +280,17 @@ function calcLeverage() {
     setError('lev-result', 'Entry и Stop Loss слишком близко'); return;
   }
 
-  const lIdeal = 1.0 / priceChangePct;
-  let lReq = Math.round(lIdeal);
+  let lReq = Math.round(1.0 / priceChangePct);
   if (lReq < 1) lReq = 1;
 
-  let lUsed, mAdjusted, capped;
-  if (lReq > maxLev) {
-    lUsed = maxLev;
-    capped = true;
-  } else {
-    lUsed = lReq;
-    capped = false;
-  }
-
-  mAdjusted = margin / (priceChangePct * lUsed);
-
-  const riskPct = (priceChangePct * lUsed * 100).toFixed(2);
-  const levColor = lUsed <= 10 ? 'green' : lUsed <= 25 ? 'yellow' : 'blue';
+  const capped = lReq > maxLev;
+  const lUsed  = capped ? maxLev : lReq;
+  const mAdjusted = margin / (priceChangePct * lUsed);
+  const levColor  = lUsed <= 10 ? 'green' : lUsed <= 25 ? 'yellow' : 'blue';
 
   if (capped) warn.classList.add('show');
 
+  // FIX: убран блок "Risk at SL"
   document.getElementById('lev-result').innerHTML = `
     <div class="result-grid">
       <div class="result-row">
@@ -315,19 +301,14 @@ function calcLeverage() {
         <span class="label">Adjusted Margin</span>
         <span class="value">$${mAdjusted.toFixed(2)}</span>
       </div>
-      <div class="result-row">
-        <span class="label">Risk at SL</span>
-        <span class="value yellow">${riskPct}%</span>
-      </div>
     </div>`;
 }
 
-// --- Margin calculation ---
 function calcMargin() {
-  const entry  = getVal('mar-entry');
-  const sl     = getVal('mar-sl');
-  const lev    = getVal('mar-lev');
-  const dloss  = getVal('mar-loss');
+  const entry = getVal('mar-entry');
+  const sl    = getVal('mar-sl');
+  const lev   = getVal('mar-lev');
+  const dloss = getVal('mar-loss');
 
   if (entry === null || sl === null || lev === null || dloss === null) {
     setPlaceholder('mar-result'); return;
@@ -348,9 +329,9 @@ function calcMargin() {
   }
 
   const mAdjusted = dloss / (priceChangePct * lev);
-  const posSize = mAdjusted * lev;
-  const riskPct = (dloss / mAdjusted * 100).toFixed(2);
+  const posSize   = mAdjusted * lev;
 
+  // FIX: убран блок "Risk % of Margin"
   document.getElementById('mar-result').innerHTML = `
     <div class="result-grid">
       <div class="result-row">
@@ -360,10 +341,6 @@ function calcMargin() {
       <div class="result-row">
         <span class="label">Position Size</span>
         <span class="value blue">$${posSize.toFixed(2)}</span>
-      </div>
-      <div class="result-row">
-        <span class="label">Risk % of Margin</span>
-        <span class="value yellow">${riskPct}%</span>
       </div>
     </div>`;
 }
