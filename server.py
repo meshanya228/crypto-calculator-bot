@@ -1,9 +1,49 @@
 from flask import Flask, send_from_directory, jsonify
 import os
 import threading
+import time
+import urllib.request
 
 app = Flask(__name__, static_folder="static")
 
+# ─── Keep-alive: пингуем себя каждые 4 минуты ───────────────────────────────
+# Render Free засыпает через 15 мин без внешних запросов.
+# Gunicorn держит этот поток живым пока процесс работает.
+def _self_ping():
+    # Ждём 30 сек после старта чтобы сервер успел подняться
+    time.sleep(30)
+    base = os.environ.get("WEBAPP_URL", "").replace("/app", "")
+    if not base:
+        # Если WEBAPP_URL не задан — строим URL сами
+        base = "https://crypto-calculator-bot.onrender.com"
+    health_url = base.rstrip("/") + "/health"
+    print(f"[keep-alive] Starting self-ping every 4 min -> {health_url}")
+    while True:
+        try:
+            req = urllib.request.Request(health_url, headers={"User-Agent": "keep-alive/1.0"})
+            with urllib.request.urlopen(req, timeout=10) as r:
+                print(f"[keep-alive] ping OK {r.status}")
+        except Exception as e:
+            print(f"[keep-alive] ping failed: {e}")
+        time.sleep(240)  # 4 минуты
+
+# Запускаем поток один раз при импорте модуля (gunicorn импортирует server.py)
+_ping_thread = threading.Thread(target=_self_ping, daemon=True, name="keep-alive")
+_ping_thread.start()
+
+# ─── Запускаем Telegram бота в отдельном потоке ──────────────────────────────
+def _run_bot():
+    try:
+        import asyncio
+        from bot_runner import start_bot
+        asyncio.run(start_bot())
+    except Exception as e:
+        print(f"[bot] crashed: {e}")
+
+_bot_thread = threading.Thread(target=_run_bot, daemon=True, name="telegram-bot")
+_bot_thread.start()
+
+# ─── Flask routes ─────────────────────────────────────────────────────────────
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
@@ -16,18 +56,6 @@ def webapp():
 def health():
     return jsonify({"status": "ok"}), 200
 
-def run_bot():
-    """Запускает Telegram бота в отдельном потоке."""
-    try:
-        import asyncio
-        from bot_runner import start_bot
-        asyncio.run(start_bot())
-    except Exception as e:
-        print(f"[bot] error: {e}")
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-    # Запускаем бота в фоне
-    bot_thread = threading.Thread(target=run_bot, daemon=True)
-    bot_thread.start()
     app.run(host="0.0.0.0", port=port)
