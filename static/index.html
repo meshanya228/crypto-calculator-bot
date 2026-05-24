@@ -7,7 +7,6 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     font-family: "Segoe UI", system-ui, sans-serif;
     font-size: 15px;
@@ -16,333 +15,100 @@
     min-height: 100vh;
     padding: 16px;
   }
-
-  /* Tabs */
-  .tabs {
-    display: flex;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 20px;
-    background: #1e1e1e;
-  }
-  .tab-btn {
-    flex: 1;
-    padding: 11px 8px;
-    border: none;
-    background: transparent;
-    color: #aaa;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-    white-space: nowrap;
-  }
-  .tab-btn.active {
-    background: #3F51B5;
-    color: #fff;
-    border-radius: 10px;
-  }
-
-  /* Tab panels */
+  .tabs { display: flex; border-radius: 10px; overflow: hidden; margin-bottom: 20px; background: #1e1e1e; }
+  .tab-btn { flex: 1; padding: 11px 8px; border: none; background: transparent; color: #aaa; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s, color 0.2s; white-space: nowrap; }
+  .tab-btn.active { background: #3F51B5; color: #fff; border-radius: 10px; }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
-
-  /* Card */
-  .card {
-    background: #1e1e1e;
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 14px;
-  }
-
-  /* FIX: grid-layout вместо flex — label никогда не сжимает input */
-  .field {
-    display: grid;
-    grid-template-columns: 110px 1fr;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
+  .card { background: #1e1e1e; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .field { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 10px; margin-bottom: 12px; }
   .field:last-child { margin-bottom: 0; }
-
-  .field label {
-    color: #aaa;
-    font-size: 13px;
-    /* FIX: убираем перенос и обрезаем если не влезет */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .field input {
-    /* FIX: min-width:0 обязателен внутри grid, иначе input раздувает колонку */
-    min-width: 0;
-    width: 100%;
-    background: #2a2a2a;
-    border: 1.5px solid #333;
-    border-radius: 8px;
-    padding: 9px 12px;
-    color: #fff;
-    font-size: 15px;
-    outline: none;
-    transition: border-color 0.2s;
-    -webkit-appearance: none;
-  }
+  .field label { color: #aaa; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .field input { min-width: 0; width: 100%; background: #2a2a2a; border: 1.5px solid #333; border-radius: 8px; padding: 9px 12px; color: #fff; font-size: 15px; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
   .field input:focus { border-color: #3F51B5; }
-  .field input.error { border-color: #e53935; }
   .field input::placeholder { color: #555; }
-
-  /* Result card */
-  .result-card {
-    background: #1a1f3a;
-    border: 1.5px solid #3F51B5;
-    border-radius: 14px;
-    padding: 18px;
-    min-height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .result-card .placeholder {
-    color: #555;
-    font-size: 13px;
-    text-align: center;
-  }
-
-  .result-grid {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .result-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-  }
+  .result-card { background: #1a1f3a; border: 1.5px solid #3F51B5; border-radius: 14px; padding: 18px; min-height: 70px; display: flex; align-items: center; justify-content: center; }
+  .result-card .placeholder { color: #555; font-size: 13px; text-align: center; }
+  .result-grid { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+  .result-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .result-row .label { color: #aaa; font-size: 13px; }
-  .result-row .value {
-    font-size: 18px;
-    font-weight: 700;
-    color: #fff;
-    text-align: right;
-  }
-  .result-row .value.green  { color: #66BB6A; }
+  .result-row .value { font-size: 18px; font-weight: 700; color: #fff; text-align: right; }
+  .result-row .value.green { color: #66BB6A; }
   .result-row .value.yellow { color: #FFA726; }
-  .result-row .value.blue   { color: #42A5F5; }
-
-  .error-msg {
-    color: #e53935;
-    font-size: 13px;
-    text-align: center;
-    width: 100%;
-  }
-
-  .section-title {
-    font-size: 11px;
-    font-weight: 700;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 12px;
-  }
-
-  .warning-badge {
-    display: none;
-    background: #332900;
-    border: 1px solid #FFA726;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 12px;
-    color: #FFA726;
-    margin-top: 10px;
-    text-align: center;
-  }
+  .result-row .value.blue { color: #42A5F5; }
+  .error-msg { color: #e53935; font-size: 13px; text-align: center; width: 100%; }
+  .section-title { font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+  .warning-badge { display: none; background: #332900; border: 1px solid #FFA726; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #FFA726; margin-top: 10px; text-align: center; }
   .warning-badge.show { display: block; }
 </style>
 </head>
 <body>
-
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('leverage', this)">📈 Leverage Calc</button>
-  <button class="tab-btn" onclick="switchTab('margin', this)">💰 Margin Calc</button>
+  <button class="tab-btn active" onclick="switchTab('leverage',this)">&#128200; Leverage Calc</button>
+  <button class="tab-btn" onclick="switchTab('margin',this)">&#128184; Margin Calc</button>
 </div>
-
-<!-- LEVERAGE TAB -->
 <div class="tab-panel active" id="tab-leverage">
   <div class="card">
-    <div class="section-title">Параметры сделки</div>
-    <div class="field">
-      <label>Entry Price</label>
-      <input type="number" id="lev-entry" placeholder="напр. 45000" step="any" inputmode="decimal" oninput="calcLeverage()">
-    </div>
-    <div class="field">
-      <label>Stop Loss</label>
-      <input type="number" id="lev-sl" placeholder="напр. 43000" step="any" inputmode="decimal" oninput="calcLeverage()">
-    </div>
-    <div class="field">
-      <label>Margin ($)</label>
-      <input type="number" id="lev-margin" placeholder="напр. 500" step="any" inputmode="decimal" oninput="calcLeverage()">
-    </div>
-    <div class="field">
-      <label>Max Leverage</label>
-      <input type="number" id="lev-maxlev" placeholder="50" value="50" step="1" inputmode="decimal" oninput="calcLeverage()">
-    </div>
+    <div class="section-title">&#1055;&#1072;&#1088;&#1072;&#1084;&#1077;&#1090;&#1088;&#1099; &#1089;&#1076;&#1077;&#1083;&#1082;&#1080;</div>
+    <div class="field"><label>Entry Price</label><input type="number" id="lev-entry" placeholder="e.g. 45000" step="any" inputmode="decimal" oninput="calcLeverage()"></div>
+    <div class="field"><label>Stop Loss</label><input type="number" id="lev-sl" placeholder="e.g. 43000" step="any" inputmode="decimal" oninput="calcLeverage()"></div>
+    <div class="field"><label>Margin ($)</label><input type="number" id="lev-margin" placeholder="e.g. 500" step="any" inputmode="decimal" oninput="calcLeverage()"></div>
+    <div class="field"><label>Max Leverage</label><input type="number" id="lev-maxlev" placeholder="50" value="50" step="1" inputmode="decimal" oninput="calcLeverage()"></div>
   </div>
-
-  <div class="result-card" id="lev-result">
-    <div class="placeholder">Введи данные выше — результат появится здесь</div>
-  </div>
-  <div class="warning-badge" id="lev-warning">⚠️ Достигнут максимальный лимит плеча — маржа скорректирована</div>
+  <div class="result-card" id="lev-result"><div class="placeholder">Enter values above</div></div>
+  <div class="warning-badge" id="lev-warning">&#9888;&#65039; Max leverage reached</div>
 </div>
-
-<!-- MARGIN TAB -->
 <div class="tab-panel" id="tab-margin">
   <div class="card">
-    <div class="section-title">Параметры сделки</div>
-    <div class="field">
-      <label>Entry Price</label>
-      <input type="number" id="mar-entry" placeholder="напр. 45000" step="any" inputmode="decimal" oninput="calcMargin()">
-    </div>
-    <div class="field">
-      <label>Stop Loss</label>
-      <input type="number" id="mar-sl" placeholder="напр. 43000" step="any" inputmode="decimal" oninput="calcMargin()">
-    </div>
-    <div class="field">
-      <label>Leverage</label>
-      <input type="number" id="mar-lev" placeholder="напр. 10" step="any" inputmode="decimal" oninput="calcMargin()">
-    </div>
-    <div class="field">
-      <label>Desired Loss ($)</label>
-      <input type="number" id="mar-loss" placeholder="напр. 100" step="any" inputmode="decimal" oninput="calcMargin()">
-    </div>
+    <div class="section-title">&#1055;&#1072;&#1088;&#1072;&#1084;&#1077;&#1090;&#1088;&#1099; &#1089;&#1076;&#1077;&#1083;&#1082;&#1080;</div>
+    <div class="field"><label>Entry Price</label><input type="number" id="mar-entry" placeholder="e.g. 45000" step="any" inputmode="decimal" oninput="calcMargin()"></div>
+    <div class="field"><label>Stop Loss</label><input type="number" id="mar-sl" placeholder="e.g. 43000" step="any" inputmode="decimal" oninput="calcMargin()"></div>
+    <div class="field"><label>Leverage</label><input type="number" id="mar-lev" placeholder="e.g. 10" step="any" inputmode="decimal" oninput="calcMargin()"></div>
+    <div class="field"><label>Desired Loss ($)</label><input type="number" id="mar-loss" placeholder="e.g. 100" step="any" inputmode="decimal" oninput="calcMargin()"></div>
   </div>
-
-  <div class="result-card" id="mar-result">
-    <div class="placeholder">Введи данные выше — результат появится здесь</div>
-  </div>
+  <div class="result-card" id="mar-result"><div class="placeholder">Enter values above</div></div>
 </div>
-
 <script>
-const tg = window.Telegram?.WebApp;
-if (tg) {
-  tg.ready();
-  tg.expand();
-}
-
-function switchTab(name, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
+const tg=window.Telegram?.WebApp;
+if(tg){tg.ready();tg.expand();}
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
   btn.classList.add('active');
 }
-
-function getVal(id) {
-  const v = parseFloat(document.getElementById(id).value);
-  return isNaN(v) ? null : v;
-}
-
-function setError(resultId, msg) {
-  document.getElementById(resultId).innerHTML =
-    `<div class="error-msg">⚠️ ${msg}</div>`;
-}
-
-function setPlaceholder(resultId) {
-  document.getElementById(resultId).innerHTML =
-    `<div class="placeholder">Введи данные выше — результат появится здесь</div>`;
-}
-
-function calcLeverage() {
-  const entry  = getVal('lev-entry');
-  const sl     = getVal('lev-sl');
-  const margin = getVal('lev-margin');
-  const maxLev = getVal('lev-maxlev');
-  const warn   = document.getElementById('lev-warning');
+function getVal(id){const v=parseFloat(document.getElementById(id).value);return isNaN(v)?null:v;}
+function setError(id,msg){document.getElementById(id).innerHTML='<div class="error-msg">'+msg+'</div>';}
+function setPlaceholder(id){document.getElementById(id).innerHTML='<div class="placeholder">Enter values above</div>';}
+function calcLeverage(){
+  const entry=getVal('lev-entry'),sl=getVal('lev-sl'),margin=getVal('lev-margin'),maxLev=getVal('lev-maxlev');
+  const warn=document.getElementById('lev-warning');
   warn.classList.remove('show');
-
-  if (entry === null || sl === null || margin === null || maxLev === null) {
-    setPlaceholder('lev-result'); return;
-  }
-  if (entry === sl) {
-    setError('lev-result', 'Entry Price и Stop Loss не могут быть равны'); return;
-  }
-  if (maxLev < 1) {
-    setError('lev-result', 'Max Leverage должен быть ≥ 1'); return;
-  }
-  if (margin <= 0) {
-    setError('lev-result', 'Margin должен быть больше 0'); return;
-  }
-
-  const priceChangePct = Math.abs(entry - sl) / entry;
-  if (priceChangePct === 0) {
-    setError('lev-result', 'Entry и Stop Loss слишком близко'); return;
-  }
-
-  let lReq = Math.round(1.0 / priceChangePct);
-  if (lReq < 1) lReq = 1;
-
-  const capped = lReq > maxLev;
-  const lUsed  = capped ? maxLev : lReq;
-  const mAdjusted = margin / (priceChangePct * lUsed);
-  const levColor  = lUsed <= 10 ? 'green' : lUsed <= 25 ? 'yellow' : 'blue';
-
-  if (capped) warn.classList.add('show');
-
-  // FIX: убран блок "Risk at SL"
-  document.getElementById('lev-result').innerHTML = `
-    <div class="result-grid">
-      <div class="result-row">
-        <span class="label">${capped ? 'Max Leverage Used' : 'Required Leverage'}</span>
-        <span class="value ${levColor}">${lUsed}x</span>
-      </div>
-      <div class="result-row">
-        <span class="label">Adjusted Margin</span>
-        <span class="value">$${mAdjusted.toFixed(2)}</span>
-      </div>
-    </div>`;
+  if(entry===null||sl===null||margin===null||maxLev===null){setPlaceholder('lev-result');return;}
+  if(entry===sl){setError('lev-result','Entry and Stop Loss cannot be equal');return;}
+  if(maxLev<1){setError('lev-result','Max Leverage must be >= 1');return;}
+  if(margin<=0){setError('lev-result','Margin must be > 0');return;}
+  const pcp=Math.abs(entry-sl)/entry;
+  if(pcp===0){setError('lev-result','Entry and Stop Loss too close');return;}
+  let lReq=Math.round(1.0/pcp);if(lReq<1)lReq=1;
+  const capped=lReq>maxLev;
+  const lUsed=capped?maxLev:lReq;
+  const mAdj=margin/(pcp*lUsed);
+  const col=lUsed<=10?'green':lUsed<=25?'yellow':'blue';
+  if(capped)warn.classList.add('show');
+  document.getElementById('lev-result').innerHTML='<div class="result-grid"><div class="result-row"><span class="label">'+(capped?'Max Leverage Used':'Required Leverage')+'</span><span class="value '+col+'">'+lUsed+'x</span></div><div class="result-row"><span class="label">Adjusted Margin</span><span class="value">$'+mAdj.toFixed(2)+'</span></div></div>';
 }
-
-function calcMargin() {
-  const entry = getVal('mar-entry');
-  const sl    = getVal('mar-sl');
-  const lev   = getVal('mar-lev');
-  const dloss = getVal('mar-loss');
-
-  if (entry === null || sl === null || lev === null || dloss === null) {
-    setPlaceholder('mar-result'); return;
-  }
-  if (entry === sl) {
-    setError('mar-result', 'Entry Price и Stop Loss не могут быть равны'); return;
-  }
-  if (lev <= 0) {
-    setError('mar-result', 'Leverage должен быть больше 0'); return;
-  }
-  if (dloss <= 0) {
-    setError('mar-result', 'Desired Loss должен быть больше 0'); return;
-  }
-
-  const priceChangePct = Math.abs(entry - sl) / entry;
-  if (priceChangePct === 0) {
-    setError('mar-result', 'Entry и Stop Loss слишком близко'); return;
-  }
-
-  const mAdjusted = dloss / (priceChangePct * lev);
-  const posSize   = mAdjusted * lev;
-
-  // FIX: убран блок "Risk % of Margin"
-  document.getElementById('mar-result').innerHTML = `
-    <div class="result-grid">
-      <div class="result-row">
-        <span class="label">Required Margin</span>
-        <span class="value green">$${mAdjusted.toFixed(2)}</span>
-      </div>
-      <div class="result-row">
-        <span class="label">Position Size</span>
-        <span class="value blue">$${posSize.toFixed(2)}</span>
-      </div>
-    </div>`;
+function calcMargin(){
+  const entry=getVal('mar-entry'),sl=getVal('mar-sl'),lev=getVal('mar-lev'),dloss=getVal('mar-loss');
+  if(entry===null||sl===null||lev===null||dloss===null){setPlaceholder('mar-result');return;}
+  if(entry===sl){setError('mar-result','Entry and Stop Loss cannot be equal');return;}
+  if(lev<=0){setError('mar-result','Leverage must be > 0');return;}
+  if(dloss<=0){setError('mar-result','Desired Loss must be > 0');return;}
+  const pcp=Math.abs(entry-sl)/entry;
+  if(pcp===0){setError('mar-result','Entry and Stop Loss too close');return;}
+  const mAdj=dloss/(pcp*lev);
+  const pos=mAdj*lev;
+  document.getElementById('mar-result').innerHTML='<div class="result-grid"><div class="result-row"><span class="label">Required Margin</span><span class="value green">$'+mAdj.toFixed(2)+'</span></div><div class="result-row"><span class="label">Position Size</span><span class="value blue">$'+pos.toFixed(2)+'</span></div></div>';
 }
 </script>
 </body>
